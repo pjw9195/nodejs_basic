@@ -1,6 +1,15 @@
 var express = require('express');
 var app = express();
+var mysql = require('mysql');
 
+var connection = mysql.createConnection({
+  host: 'localhost',
+  port: '3306',
+  user: 'root',
+  password: '1234',
+  database: 'jsman',
+});
+connection.connect();
 //post 형식으로 받기위한 body-parser
 var bodyParser = require('body-parser');
 
@@ -29,4 +38,25 @@ app.post('/email_post', function(req, res) {
   console.log(req.body.email);
   //email.ejs에 email 데이터로 넘겨줘라
   res.render('email.ejs', { email: req.body.email });
+});
+
+app.post('/ajax_send_email', function(req, res) {
+  var email = req.body.email;
+  var responseData = {};
+  var query = connection.query(
+    'select name from user where email="' + email + '"',
+    function(err, rows) {
+      if (err) {
+        throw err;
+      }
+      if (rows[0]) {
+        console.log(rows[0].name + 'hit');
+        responseData.name = rows[0].name;
+      } else {
+        console.log('none : ' + rows[0]);
+        responseData.name = '';
+      }
+      res.json(responseData);
+    }
+  );
 });
